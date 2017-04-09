@@ -11,7 +11,7 @@ def compileAll():
     subprocess.call(['gcc', '-g', '-Wall', '-o', 'linkedlist_mutex', 'linkedlist_mutex.c', '-lm', '-lpthread'])
     subprocess.call(['gcc', '-g', '-Wall', '-o', 'linkedlist_rw', 'linkedlist_rw.c', '-lm', '-lpthread'])
 
-# Execute a given process and calculate the average and standard deviation
+# Execute a given process and calculate the average execution time and standard deviation
 def execute(command):
     elapsedTimes = []
     for i in range(NO_OF_SAMPLES):
@@ -21,19 +21,17 @@ def execute(command):
     average = statistics.mean(elapsedTimes)
     standardDeviation = statistics.stdev(elapsedTimes)
     samples = math.ceil(math.pow(((100 * 1.96 * standardDeviation) / (5 * average)), 2))
-    print('Average: ' + str(average))
-    print('Std.Dev: ' + str(standardDeviation))
+    print('     Average Execution Time  = ' + str(average))
+    print('     Standard Deviation      = ' + str(standardDeviation))
     #print('Samples: ' + str(samples))
 
 # Execute commands
 def executeCommands(commands):
     for i in range(len(commands)):
-        if(i is 0):
-            print("No of Threads: 1")
-        else:
-            print("No of Threads: " + str(i * 2))
+        command = commands[i];
+        print('     Number of Threads       =  ' + command[6])
         execute(commands[i])
-        print("")
+        print('')
 
 # Commands that are to be executed
 serial = [['./linkedlist_serial', '1000', '10000', '0.99', '0.005', '0.005'], ['./linkedlist_serial', '1000', '10000', '0.9', '0.05', '0.05'], ['./linkedlist_serial', '1000', '10000', '0.5', '0.25', '0.25']]
@@ -57,19 +55,27 @@ rw = [rw1, rw2, rw3]
 # Compile all the files
 compileAll()
 
+print('')
+print('**************************************************')
+print('                   Test Cases')
+print('**************************************************')
+
 # Execute and print the output
 for i in range(3):
     print('')
-    print('                  Case ' + str(i + 1) + '')
-    print('Serial:')
+    print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
+    print('Case ' + str(i + 1))
+    print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
+    print('')
+    print('Serial program :')
     print('')
     execute(serial[i])
     print('')
-    print('Mutex:')
+    print('Parallel program (based on Pthreads) with one mutex :')
     print('')
     executeCommands(mutex[i])
     print('')
-    print('ReadWrite:')
-    print('      ')
+    print('Parallel program (based on Pthreads) with read-write locks :')
+    print('')
     executeCommands(rw[i])
 

@@ -23,7 +23,7 @@ def execute(command):
     samples = math.ceil(math.pow(((100 * 1.96 * standardDeviation) / (5 * average)), 2))
     print('Average: ' + str(average))
     print('Std.Dev: ' + str(standardDeviation))
-    print('Samples: ' + str(samples))
+    #print('Samples: ' + str(samples))
 
 # Execute commands
 def executeCommands(commands):
@@ -34,7 +34,6 @@ def executeCommands(commands):
             print("No of Threads: " + str(i * 2))
         execute(commands[i])
         print("")
-
 
 # Commands that are to be executed
 serial = [['./linkedlist_serial', '1000', '10000', '0.99', '0.005', '0.005'], ['./linkedlist_serial', '1000', '10000', '0.9', '0.05', '0.05'], ['./linkedlist_serial', '1000', '10000', '0.5', '0.25', '0.25']]
@@ -60,15 +59,17 @@ compileAll()
 
 # Execute and print the output
 for i in range(3):
-    print('************ CASE- ' + str(i + 1) + ' ***************')
+    print('')
+    print('                  Case ' + str(i + 1) + '')
     print('Serial:')
-    print('     ')
+    print('')
     execute(serial[i])
     print('')
     print('Mutex:')
-    print('      ')
+    print('')
     executeCommands(mutex[i])
     print('')
     print('ReadWrite:')
     print('      ')
     executeCommands(rw[i])
+

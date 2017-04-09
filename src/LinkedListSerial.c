@@ -11,58 +11,60 @@ struct list_node_s {
     struct list_node_s* next;
 };
 
-struct list_node_s* head_p = NULL;
-pthread_mutex_t mutex;
-int noOfOperationsPerThread;
-int noOfMemberPerThread;
-int noOfInsertPerThread;
-int noOfDeletePerThread;
-
+// Method declarations
+int  Delete(int value);
 int  Insert(int value);
 int  Member(int value);
-int  Delete(int value);
 
+void doOperations();
 void initialize(int);
 int generateRandom(void);
-void* doOperations(void*);
 long current_timestamp(void);
 
+// Variables
+struct list_node_s* head_p = NULL;
+int noOfOperations;
+int noOfMember;
+int noOfInsert;
+int noOfDelete;
+
 int main(int arc, char *argv[]) {
-    if (arc != 7) {
+    // Validate the arguments
+    if (arc != 6) {
         printf("Invalid number of arguments %d\n", arc);
         return -1;
     }
+    // Variables
     long start, finish, elapsed;
-    pthread_t* threadHandles;
-    int noOfVariables = atoi(argv[1]);
-    int noOfThreads = atoi(argv[6]);
-    noOfOperationsPerThread = atoi(argv[2]) / noOfThreads;
-    noOfMemberPerThread = strtod(argv[3], NULL) * noOfOperationsPerThread;
-    noOfInsertPerThread = strtod(argv[4], NULL) * noOfOperationsPerThread;
-    noOfDeletePerThread = strtod(argv[5], NULL) * noOfOperationsPerThread;
 
-    threadHandles = (pthread_t*) malloc (noOfThreads * sizeof(pthread_t));
-    pthread_mutex_init(&mutex, NULL);
+    // Collect and interpret the arguments
+    int noOfVariables = atoi(argv[1]);
+    noOfOperations = atoi(argv[2]);
+    noOfMember = strtod(argv[3], NULL) * noOfOperations;
+    noOfInsert = strtod(argv[4], NULL) * noOfOperations;
+    noOfDelete = strtod(argv[5], NULL) * noOfOperations;
+
+    // Initialize the linkedlist
     initialize(noOfVariables);
 
-    long thread;
+    // Get the starting time
     start = current_timestamp();
-    for (thread = 0; thread < noOfThreads; thread++) {
-        pthread_create(&threadHandles[thread], NULL, doOperations, (void*)thread);
-    }
 
-    for (thread = 0; thread < noOfThreads; thread++) {
-        pthread_join(threadHandles[thread], NULL);
-    }
+    // Do the operations
+    doOperations();
+
+    // Get the ending time
     finish = current_timestamp();
+
     // Calculate the elapsed time
     elapsed = finish - start;
-    
+
     // Print the time to stdout
     printf("%ld", elapsed);
     return 0;
 }
 
+//get the current time
 long current_timestamp() {
     struct timeval te;
     gettimeofday(&te, NULL); // get current time
@@ -71,50 +73,68 @@ long current_timestamp() {
     return milliseconds;
 }
 
+//to get random data for initial data and test data
 int generateRandom() {
     int value = rand() % MAX_VALUE;
     return value;
 }
 
+//initialize the linked list
 void initialize(int noOfVariables) {
     srand (time(NULL));
-    int inserted = 0;
+    int Inserted = 0;
     int i;
     for (i = 0; i < noOfVariables; i++) {
-        inserted = Insert(generateRandom());
-        if (!inserted) {
+        Inserted = Insert(generateRandom());
+        if (!Inserted) {
             i--;
         }
     }
 }
 
-void* doOperations(void* rank) {
-    long start = ((long) rank) * noOfOperationsPerThread;
-    long end = start + noOfOperationsPerThread;
-
+//call menber, insert and delete.
+void doOperations() {
     long i;
-    for (i = start; i < end; i++) {
-        if (i < start + noOfInsertPerThread) {
+    for (i = 0; i < noOfOperations; i++) {
+        if (i < noOfInsert) {
             int value = generateRandom();
-            pthread_mutex_lock(&mutex);
             Insert(value);
-            pthread_mutex_unlock(&mutex);
-        } else if (i < start + noOfInsertPerThread + noOfDeletePerThread) {
+        } else if (i < noOfInsert + noOfDelete) {
             int value = generateRandom();
-            pthread_mutex_lock(&mutex);
             Delete(value);
-            pthread_mutex_unlock(&mutex);
         } else {
             int value = generateRandom();
-            pthread_mutex_lock(&mutex);
             Member(value);
-            pthread_mutex_unlock(&mutex);
         }
     }
-
-    return NULL;
 }
 
+//delete an element from the linked list
+int Delete(int value) {
+    struct list_node_s* curr_p = head_p;
+    struct list_node_s* pred_p = NULL;
+
+    /* Find value */
+    while (curr_p != NULL && curr_p->data < value) {
+        pred_p = curr_p;
+        curr_p = curr_p->next;
+    }
+
+    if (curr_p != NULL && curr_p->data == value) {
+        if (pred_p == NULL) {
+            head_p = curr_p->next;
+            free(curr_p);
+        } else {
+            pred_p->next = curr_p->next;
+            free(curr_p);
+        }
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+//insert an element in a linked list
 int Insert(int value) {
     struct list_node_s* curr_p = head_p;
     struct list_node_s* pred_p = NULL;
@@ -139,6 +159,7 @@ int Insert(int value) {
     }
 }
 
+//check for the existing element in a linked list
 int  Member(int value) {
     struct list_node_s* curr_p;
 
@@ -150,30 +171,5 @@ int  Member(int value) {
         return 0;
     } else {
         return 1;
-    }
-}
-
-
-int Delete(int value) {
-    struct list_node_s* curr_p = head_p;
-    struct list_node_s* pred_p = NULL;
-
-    /* Find value */
-    while (curr_p != NULL && curr_p->data < value) {
-        pred_p = curr_p;
-        curr_p = curr_p->next;
-    }
-
-    if (curr_p != NULL && curr_p->data == value) {
-        if (pred_p == NULL) {
-            head_p = curr_p->next;
-            free(curr_p);
-        } else {
-            pred_p->next = curr_p->next;
-            free(curr_p);
-        }
-        return 1;
-    } else {
-        return 0;
     }
 }

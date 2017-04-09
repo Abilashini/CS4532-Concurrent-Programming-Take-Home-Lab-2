@@ -13,15 +13,15 @@ struct list_node_s {
 
 struct list_node_s* head_p = NULL;
 pthread_rwlock_t rwlock;
-
 int noOfOperationsPerThread;
-int noOfMemberPerThread;
 int noOfInsertPerThread;
 int noOfDeletePerThread;
-
+int noOfMemberPerThread;
+// Method declarations
+int  Delete(int value);
 int  Insert(int value);
 int  Member(int value);
-int  Delete(int value);
+
 long current_timestamp(void);
 void initialize(int);
 int generateRandom(void);
@@ -42,7 +42,7 @@ int main(int arc, char *argv[]) {
     noOfDeletePerThread = strtod(argv[5], NULL) * noOfOperationsPerThread;
 
     threadHandles = (pthread_t*) malloc (noOfThreads * sizeof(pthread_t));
-    pthread_rwlock_init(&rwlock, NULL); 
+    pthread_rwlock_init(&rwlock, NULL);
     initialize(noOfVariables);
 
     long thread;
@@ -57,12 +57,13 @@ int main(int arc, char *argv[]) {
     finish = current_timestamp();
     // Calculate the elapsed time
     elapsed = finish - start;
-    
+
     // Print the time to stdout
     printf("%ld", elapsed);
     return 0;
 }
 
+//get the current time
 long current_timestamp() {
     struct timeval te;
     gettimeofday(&te, NULL); // get current time
@@ -71,11 +72,13 @@ long current_timestamp() {
     return milliseconds;
 }
 
+//to get random data for initial data and test data
 int generateRandom() {
     int value = rand() % MAX_VALUE;
     return value;
 }
 
+//initialize the linked list
 void initialize(int noOfVariables) {
     srand (time(NULL));
     int inserted = 0;
@@ -88,6 +91,7 @@ void initialize(int noOfVariables) {
     }
 }
 
+//use rwlock for member, insert and delete.
 void* doOperations(void* rank) {
     long start = ((long) rank) * noOfOperationsPerThread;
     long end = start + noOfOperationsPerThread;
@@ -115,6 +119,32 @@ void* doOperations(void* rank) {
     return NULL;
 }
 
+//delete an element from the linked list
+int Delete(int value) {
+    struct list_node_s* curr_p = head_p;
+    struct list_node_s* pred_p = NULL;
+
+    /* Find value */
+    while (curr_p != NULL && curr_p->data < value) {
+        pred_p = curr_p;
+        curr_p = curr_p->next;
+    }
+
+    if (curr_p != NULL && curr_p->data == value) {
+        if (pred_p == NULL) {
+            head_p = curr_p->next;
+            free(curr_p);
+        } else {
+            pred_p->next = curr_p->next;
+            free(curr_p);
+        }
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+////insert an element in a linked list
 int Insert(int value) {
     struct list_node_s* curr_p = head_p;
     struct list_node_s* pred_p = NULL;
@@ -139,6 +169,7 @@ int Insert(int value) {
     }
 }
 
+//check for the existing element in a linked list
 int  Member(int value) {
     struct list_node_s* curr_p;
 
@@ -150,30 +181,5 @@ int  Member(int value) {
         return 0;
     } else {
         return 1;
-    }
-}
-
-
-int Delete(int value) {
-    struct list_node_s* curr_p = head_p;
-    struct list_node_s* pred_p = NULL;
-
-    /* Find value */
-    while (curr_p != NULL && curr_p->data < value) {
-        pred_p = curr_p;
-        curr_p = curr_p->next;
-    }
-
-    if (curr_p != NULL && curr_p->data == value) {
-        if (pred_p == NULL) {
-            head_p = curr_p->next;
-            free(curr_p);
-        } else {
-            pred_p->next = curr_p->next;
-            free(curr_p);
-        }
-        return 1;
-    } else {
-        return 0;
     }
 }
